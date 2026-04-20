@@ -97,12 +97,14 @@ def stock_zh_a_spot() -> pd.DataFrame:
         "成交量",
         "成交额",
         "时间戳",
-        "_",
-        "_",
-        "_",
-        "_",
-        "_",
+        "市盈率",
+        "市净率",
+        "总市值",
+        "流通市值",
+        "换手率",
     ]
+    prev_close = big_df["昨收"].where(big_df["昨收"] != 0)
+    big_df["振幅"] = (big_df["最高"] - big_df["最低"]) / prev_close * 100
     big_df = big_df[
         [
             "代码",
@@ -116,8 +118,14 @@ def stock_zh_a_spot() -> pd.DataFrame:
             "今开",
             "最高",
             "最低",
+            "振幅",
             "成交量",
             "成交额",
+            "换手率",
+            "市盈率",
+            "市净率",
+            "总市值",
+            "流通市值",
             "时间戳",
         ]
     ]
@@ -502,9 +510,7 @@ if __name__ == "__main__":
     )
     print(stock_zh_a_minute_df)
 
-    stock_zh_a_minute_df = stock_zh_a_minute(
-        symbol="sh600751", period="1", adjust=""
-    )
+    stock_zh_a_minute_df = stock_zh_a_minute(symbol="sh600751", period="1", adjust="")
     print(stock_zh_a_minute_df)
 
     stock_zh_a_cdr_daily_df = stock_zh_a_cdr_daily(
