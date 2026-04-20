@@ -45,10 +45,12 @@ def _get_zh_b_page_count() -> int:
         return int(page_count) + 1
 
 
-def stock_zh_b_spot() -> pd.DataFrame:
+def stock_zh_b_spot(extended: bool = False) -> pd.DataFrame:
     """
     新浪财经-所有 B 股的实时行情数据; 重复运行本函数会被新浪暂时封 IP
     https://vip.stock.finance.sina.com.cn/mkt/#hs_b
+    :param extended: 是否返回增强字段, 默认返回兼容历史版本的基础字段
+    :type extended: bool
     :return: 所有股票的实时行情数据
     :rtype: pandas.DataFrame
     """
@@ -83,29 +85,12 @@ def stock_zh_b_spot() -> pd.DataFrame:
         "最低",
         "成交量",
         "成交额",
-        "_",
-        "_",
-        "_",
-        "_",
-        "_",
-        "_",
-    ]
-    big_df = big_df[
-        [
-            "代码",
-            "名称",
-            "最新价",
-            "涨跌额",
-            "涨跌幅",
-            "买入",
-            "卖出",
-            "昨收",
-            "今开",
-            "最高",
-            "最低",
-            "成交量",
-            "成交额",
-        ]
+        "时间戳",
+        "市盈率",
+        "市净率",
+        "总市值",
+        "流通市值",
+        "换手率",
     ]
     big_df["最新价"] = pd.to_numeric(big_df["最新价"], errors="coerce")
     big_df["涨跌额"] = pd.to_numeric(big_df["涨跌额"], errors="coerce")
@@ -118,6 +103,40 @@ def stock_zh_b_spot() -> pd.DataFrame:
     big_df["最低"] = pd.to_numeric(big_df["最低"], errors="coerce")
     big_df["成交量"] = pd.to_numeric(big_df["成交量"], errors="coerce")
     big_df["成交额"] = pd.to_numeric(big_df["成交额"], errors="coerce")
+    big_df["市盈率"] = pd.to_numeric(big_df["市盈率"], errors="coerce")
+    big_df["市净率"] = pd.to_numeric(big_df["市净率"], errors="coerce")
+    big_df["总市值"] = pd.to_numeric(big_df["总市值"], errors="coerce")
+    big_df["流通市值"] = pd.to_numeric(big_df["流通市值"], errors="coerce")
+    big_df["换手率"] = pd.to_numeric(big_df["换手率"], errors="coerce")
+    prev_close = big_df["昨收"].where(big_df["昨收"] != 0)
+    big_df["振幅"] = (big_df["最高"] - big_df["最低"]) / prev_close * 100
+    basic_columns = [
+        "代码",
+        "名称",
+        "最新价",
+        "涨跌额",
+        "涨跌幅",
+        "买入",
+        "卖出",
+        "昨收",
+        "今开",
+        "最高",
+        "最低",
+        "成交量",
+        "成交额",
+    ]
+    extended_columns = [
+        "时间戳",
+        "振幅",
+        "换手率",
+        "市盈率",
+        "市净率",
+        "总市值",
+        "流通市值",
+    ]
+    big_df = (
+        big_df[basic_columns + extended_columns] if extended else big_df[basic_columns]
+    )
     return big_df
 
 

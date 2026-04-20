@@ -39,10 +39,12 @@ def get_zh_kcb_page_count() -> int:
         return int(page_count) + 1
 
 
-def stock_zh_kcb_spot() -> pd.DataFrame:
+def stock_zh_kcb_spot(extended: bool = False) -> pd.DataFrame:
     """
     新浪财经-科创板实时行情数据, 大量抓取容易封IP
     https://vip.stock.finance.sina.com.cn/mkt/#kcb
+    :param extended: 是否返回增强字段, 默认返回兼容历史版本的基础字段
+    :type extended: bool
     :return: 科创板实时行情数据
     :rtype: pandas.DataFrame
     """
@@ -77,30 +79,6 @@ def stock_zh_kcb_spot() -> pd.DataFrame:
         "总市值",
         "换手率",
     ]
-    big_df = big_df[
-        [
-            "代码",
-            "名称",
-            "最新价",
-            "涨跌额",
-            "涨跌幅",
-            "买入",
-            "卖出",
-            "昨收",
-            "今开",
-            "最高",
-            "最低",
-            "成交量",
-            "成交额",
-            "时点",
-            "市盈率",
-            "市净率",
-            "流通市值",
-            "总市值",
-            "换手率",
-        ]
-    ]
-
     big_df["最新价"] = pd.to_numeric(big_df["最新价"])
     big_df["涨跌额"] = pd.to_numeric(big_df["涨跌额"])
     big_df["涨跌幅"] = pd.to_numeric(big_df["涨跌幅"])
@@ -117,6 +95,30 @@ def stock_zh_kcb_spot() -> pd.DataFrame:
     big_df["流通市值"] = pd.to_numeric(big_df["流通市值"])
     big_df["总市值"] = pd.to_numeric(big_df["总市值"])
     big_df["换手率"] = pd.to_numeric(big_df["换手率"])
+    prev_close = big_df["昨收"].where(big_df["昨收"] != 0)
+    big_df["振幅"] = (big_df["最高"] - big_df["最低"]) / prev_close * 100
+    basic_columns = [
+        "代码",
+        "名称",
+        "最新价",
+        "涨跌额",
+        "涨跌幅",
+        "买入",
+        "卖出",
+        "昨收",
+        "今开",
+        "最高",
+        "最低",
+        "成交量",
+        "成交额",
+        "时点",
+        "市盈率",
+        "市净率",
+        "流通市值",
+        "总市值",
+        "换手率",
+    ]
+    big_df = big_df[basic_columns + ["振幅"]] if extended else big_df[basic_columns]
     return big_df
 
 
