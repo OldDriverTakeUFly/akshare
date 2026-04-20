@@ -42,10 +42,12 @@ def _get_zh_a_page_count() -> int:
         return int(page_count) + 1
 
 
-def stock_zh_a_spot() -> pd.DataFrame:
+def stock_zh_a_spot(extended: bool = False) -> pd.DataFrame:
     """
     新浪财经-所有 A 股的实时行情数据; 重复运行本函数会被新浪暂时封 IP
     https://vip.stock.finance.sina.com.cn/mkt/#hs_a
+    :param extended: 是否返回增强字段, 默认返回兼容历史版本的基础字段
+    :type extended: bool
     :return: 所有股票的实时行情数据
     :rtype: pandas.DataFrame
     """
@@ -105,30 +107,33 @@ def stock_zh_a_spot() -> pd.DataFrame:
     ]
     prev_close = big_df["昨收"].where(big_df["昨收"] != 0)
     big_df["振幅"] = (big_df["最高"] - big_df["最低"]) / prev_close * 100
-    big_df = big_df[
-        [
-            "代码",
-            "名称",
-            "最新价",
-            "涨跌额",
-            "涨跌幅",
-            "买入",
-            "卖出",
-            "昨收",
-            "今开",
-            "最高",
-            "最低",
-            "振幅",
-            "成交量",
-            "成交额",
-            "换手率",
-            "市盈率",
-            "市净率",
-            "总市值",
-            "流通市值",
-            "时间戳",
-        ]
+    basic_columns = [
+        "代码",
+        "名称",
+        "最新价",
+        "涨跌额",
+        "涨跌幅",
+        "买入",
+        "卖出",
+        "昨收",
+        "今开",
+        "最高",
+        "最低",
+        "成交量",
+        "成交额",
+        "时间戳",
     ]
+    extended_columns = [
+        "振幅",
+        "换手率",
+        "市盈率",
+        "市净率",
+        "总市值",
+        "流通市值",
+    ]
+    big_df = (
+        big_df[basic_columns + extended_columns] if extended else big_df[basic_columns]
+    )
     return big_df
 
 
